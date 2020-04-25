@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>打砖块小游戏</title>
+	<link href="logo.ico" rel="shortcut icon">
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+		}
+		body{
+			background-color: #cecece;
+		}
+		#leftBorder{
+			width: 280px;
+			height: 500px;
+			background-color: #B27500;
+			border-radius: 20px;
+			margin: 30px;
+			float: left;
+		}
+		#divLeft{
+			width: 260px;
+			height: 480px;
+			background-color: #cecece;
+			border-radius: 20px;
+			margin: 10px;
+			float: left;
+		}
+		#BoxBorder{
+			width: 880px;
+			height: 560px;
+			background-color: #B27500;
+			border-radius: 20px;
+			margin: 30px;
+			float: left;
+		}
+		#divBox{
+			width: 840px;
+			height: 520px;
+			background-image: url(sky.jpg);
+			background-repeat: no-repeat;
+			border-radius: 6px;
+			margin: 20px;
+			position: relative;
+			float: left;
+		}
+		#GameTime{
+			font-size: 22px;
+			color: red;
+			margin-left: 20px;
+		}
+		#GameScore{
+			font-size: 22px;
+			margin-left: 20px;
+		}
+		#GameRule{
+			margin-top: 100px;
+		}
+		#GameRule p{
+			font-size: 16px;
+			color: black;
+			margin: 10px;
+		}
+	</style>
+</head>
+<body>
+	<div id="leftBorder">
+		<div id="divLeft">
+			<!-- 游戏分数 -->
+			<div id="GameScore">
+				<br>
+				<span style="font-weight: bold;color: black;">分数：</span>
+				<span id="Score">--</span>
+			</div>
+			<!-- 游戏时间 -->
+			<div id="GameTime">
+				<br>
+				<span style="font-weight: bold;color: black;">时间：</span>
+				<span id="Minutes">-- </span>:
+				<span id="Seconds">--</span>
+			</div>
+			<div id="GameRule">
+				<p style="font-size: 28px;text-align: center;">游戏规则</p>
+				<p style="margin-top: 30px;">1.单击空格键开始游戏；</p>
+				<p>2.键盘左右方向键可以控制挡板左右移动；</p>
+				<p>3.单击shift重新开始游戏；</p>
+				<p>4.当所有砖块都消失时，即可赢得游戏</p>
+			</div>
+	    </div>
+	</div>
+	<div id="BoxBorder">
+		<div id="divBox">
+			<!-- 方块 -->
+			<div id="square"></div>
+			<!-- 小球 -->
+			<div id="ball"></div>
+			<!-- 挡板 -->
+			<div id="board"></div>
+		</div>
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+	var i;
+	var topY=[];
+	var leftX=[];
+	var time;//小球运动计时器
+	var GameTime;//游戏时间运动计时器
+	var Score=0;
+	var speed=10;
+	window.onload=function(){
+		var square=$("square");
+		var ball=$("ball");
+		var board=$("board");
+		// 创建方块
+		var oDiv=CreateSquare(square);
+		// 方块的显示
+		SquareAccording();
+
+		// 小球样式
+		BallStyle(ball,oDiv);
+		// 创建挡板
+		BoardStyle(board);
+		
+		// 控制挡板接小球
+		Control_Ball_Board(board,ball);
+		
+	}
+	function $(id){
+		return document.getElementById(id);
+	}
+	// 创建方块
+	function CreateSquare(square){
+		var top=2,left=2;
+		for(i=0;i<100;i++){
+			var oDiv=document.createElement("div");
+			oDiv.style.width=80+"px";
+			oDiv.style.height=20+"px";
+			// oDiv.style.background=RandomColor();
+			oDiv.style.borderRadius=6+"px";
+			oDiv.style.position="absolute";
+			oDiv.style.top=top+"px";
+			oDiv.style.left=left+"px";
+			leftX.push(left);
+			topY.push(top);
+			square.appendChild(oDiv);
+			left+=84;
+			if(i%10==9){
+				top+=22;
+				left=2;
+			}
+		}
+		return oDiv;
+	}
+	// 小球的样式
+	function BallStyle(ball){
+		var bottom=20,ballLeft=220;
+		ball.style.width=20+"px";
+		ball.style.height=20+"px";
+		ball.style.background="white";
+		ball.style.borderRadius="50%";
+		ball.style.position="absolute";
+		ball.style.bottom=bottom+"px";
+		ball.style.left=ballLeft+"px";
+	}
+	// 创建挡板
+	function BoardStyle(board){
+		var boardLeft=180;
+		board.style.width=160+"px";
+		board.style.height=20+"px";
+		board.style.color="#01F4BE";
+		board.style.background="#01F4BE";
+		board.style.borderRadius=6+"px";
+		board.style.position="absolute";
+		board.style.bottom=0+"px";
+		board.style.left=boardLeft+"px";
+	}
+	// 方块随机颜色
+	function RandomColor(){
+		var r=Math.floor(Math.random()*256);
+		var g=Math.floor(Math.random()*256);
+		var b=Math.floor(Math.random()*256);
+		return "rgb("+r+","+g+","+b+")"
+	}
+	// 方块呈波浪形显示
+	function SquareAccording(){
+		var Squares=$("square").getElementsByTagName('div');
+		var n=0;
+		var S=setInterval(function(){
+			var m=n;
+			for(i=0;i<10;i++){
+				if(m%10==0){Squares[m].style.background="#CC5151";}
+				else if(m%10==1){Squares[m].style.background="#FDB56E";}
+				else if(m%10==2){Squares[m].style.background="#FDFD99";}
+				else if(m%10==3){Squares[m].style.background="#72FF72";}
+				else if(m%10==4){Squares[m].style.background="#01CBCB";}
+				else if(m%10==5){Squares[m].style.background="#7474FF";}
+				else if(m%10==6){Squares[m].style.background="#8B00FF";}
+				else if(m%10==7){Squares[m].style.background="#E1B1A6";}
+				else if(m%10==8){Squares[m].style.background="#01F4BE";}
+				else if(m%10==9){Squares[m].style.background="#00C69A";}
+				m=m+10;
+			}
+			n++;
+			if(n==10){
+				clearInterval(S);
+			}
+		},100)
+	}
+	// 左右按钮控制未开始游戏时候的挡板与小球
+	function Control_Ball_Board(board,ball,oDiv){
+		var MoveRight=false,MoveLeft=false,MoveRightTime,MoveLeftTime;
+		document.onkeyup=function(e){
+			 var evt = e || event;
+		    switch(evt.keyCode){
+		    	case 37: //左
+		    		clearInterval(MoveLeftTime);
+		    		MoveLeft=false;
+		    	break;
+		    	case 39: //右
+		    		clearInterval(MoveRightTime);
+		    		MoveRight=false;
+		    	break;
+		    	default:
+                    console.log("请按上下左右键");
+                break;
+            }
+		}
+		var boardLeft=180,ballLeft=220;
+		var space=false;          //是否开始游戏
+		var pause=false;          //是否暂停游戏
+		document.onkeydown=function(e){
+		    var evt = e || event;
+		    switch(evt.keyCode){
+		    	case 37: //左
+		    		if(boardLeft>0&&MoveLeft==false){
+		    			MoveLeft=true;
+			    		MoveLeftTime=setInterval(function(){
+			    			ballLeft-=10;   //小球移动的距离自加
+			    			boardLeft-=10;  //挡板移动距离自加
+			    			// 挡板向右移动
+			    			if(space==true){
+					    		board.style.left=boardLeft+"px";
+				    			board.innerHTML=boardLeft;
+				    		}
+				    		// 小球与挡板一起向右移动
+			    			if(space==false){
+					    		ball.style.left=ballLeft+"px";
+					    		board.style.left=boardLeft+"px";
+			    			}
+			    			// 挡板到右边界清空计时器
+			    			if(boardLeft<=0){
+				    			clearInterval(MoveLeftTime);
+				    		}
+		    			},20)
+			    	}
+		    	break;
+		    	case 39: //右
+			    	if(boardLeft<680&&MoveRight==false){
+		    			MoveRight=true;
+			    		MoveRightTime=setInterval(function(){
+			    			ballLeft+=10;   //小球移动的距离自加
+			    			boardLeft+=10;  //挡板移动距离自加
+			    			// 挡板向右移动
+			    			if(space==true){
+					    		board.style.left=boardLeft+"px";
+				    			board.innerHTML=boardLeft;
+				    		}
+				    		// 小球与挡板一起向右移动
+			    			if(space==false){
+					    		ball.style.left=ballLeft+"px";
+					    		board.style.left=boardLeft+"px";
+			    			}
+			    			// 挡板到右边界清空计时器
+			    			if(boardLeft>=680){
+				    			clearInterval(MoveRightTime);
+				    		}
+		    			},20)
+			    	}
+		    	break;
+		    	case 32: // 游戏开始
+		    		if(space==false){
+		    			DirectionBall(ball,board,20,ballLeft);
+		    			$("Score").innerHTML="0";
+		    			// 设置页面左边框里面的值
+		    			SetLeftBorder();
+		    		}
+		    		space=true; //开始游戏
+		    	break;
+		    	case 16: 
+		    		self.location.reload();
+		    	break;
+		    	case 78: 
+		    		if(pause==false){ //没按暂停
+		    			pause=true;
+		    			alert("游戏暂停中！");
+		    		}
+		    		if(pause==true){  //按了暂停
+		    			pause=false;
+		    			alert("游戏继续...");
+		    			// time=setInterval();
+		    			// GameTime=setInterval();
+		    		}
+		    	break;
+		    	default:
+                    console.log("请按上下左右键");
+                break;
+            }
+		}
+	}
+	
+	// 改变小球方向
+	function DirectionBall(ball,board,bottom,left){
+		// X方向与Y方向运动增加值
+		var X=left,Y=bottom,AddX=2,AddY=2;
+		time=setInterval(function(){
+			X+=AddX;Y+=AddY;
+			ball.style.left=X+"px";
+			ball.style.bottom=Y+"px";
+			if(X>=820){AddX=-AddX;}
+			if(Y>=500){AddY=-AddY;}
+			if(X<=0){AddX=-AddX;}
+			if(Y==20){ //挡板接小球
+				if(X-board.innerHTML>=-20&&X-board.innerHTML<160){  //挡板是否接到小球
+					AddY=-AddY;
+				}
+			}
+			if(Y==-2){  // 游戏结束
+				// "游戏结束"字样提示
+				GameOver();   
+				// 小球停止运动
+				clearInterval(time);
+				// 结束游戏时间计时器
+				clearInterval(GameTime);
+			}
+			// 赢得游戏
+			WinTheGame();
+			// 小球撞击砖块，砖块透明度设为“0”
+			for(i=0;i<leftX.length;i++){
+				if(X-leftX[i]>0&&X-leftX[i]<=80){
+					if(topY[i]+Y>=480&&topY[i]+Y<=500&&topY[i]!="#"){
+						var Squares=$("square").getElementsByTagName('div');
+						Squares[i].style.opacity = "0";
+						Squares[i].style.color="white";
+						topY.splice(i,1,"#");
+						AddY=-AddY;
+						// 游戏分数
+						$("Score").innerHTML=++Score;
+					}
+				}
+			}
+		},speed)
+	}
+	// 游戏结束
+	function GameOver(){
+		var Squares=$("square").getElementsByTagName('div');
+		for(i=0;i<Squares.length;i++){
+			if(topY[i]!="#"){
+				Squares[i].style.background="grey";
+			}
+		}
+		// Good Game!样式
+		var span=document.createElement("div");
+		span.innerHTML="游戏失败";
+		$("divBox").appendChild(span);
+		span.style.fontWeight="bold";
+		span.style.color="red";
+		span.style.textAlign="center";
+		span.style.marginTop=260+"px";
+		var fontSize=0;
+		var S=setInterval(function(){
+			fontSize+=0.5;
+			if(fontSize<=36){
+				span.style.fontSize=fontSize+"px";
+			}else{
+				clearInterval(S);
+			}
+		},10)
+	}
+	// 赢得游戏
+	function WinTheGame(){
+		var state=false;
+		console.log(topY);
+		for(i=0;i<topY.length;i++){
+			if(topY[i]=="#"){
+				state=true;
+			}else{
+				state=false;
+				break;
+			}
+		}
+		if(state==true){
+			var span=document.createElement("div");
+			span.innerHTML="游戏通关啦，你真棒！";
+			$("divBox").appendChild(span);
+			var youWin=0;
+			var fontSize=0;
+			span.style.fontWeight="bold";
+			span.style.color="#01F4BE";
+			span.style.textAlign="center";
+			
+			var S=setInterval(function(){
+				fontSize+=0.5;
+				youWin+=0.8;
+				if(fontSize<=52){
+					span.style.fontSize=fontSize+"px";
+					span.style.marginTop=youWin+"px";
+				}else{
+					clearInterval(S);
+				}
+			},10)
+			// 小球停止运动
+			clearInterval(time);
+			// 结束游戏时间计时器
+			clearInterval(GameTime);
+		}
+	}
+	// 设置游戏时间
+	function SetLeftBorder(){
+		var time=0;
+		$("Minutes").innerHTML="00";
+		$("Seconds").innerHTML="00";
+		GameTime=setInterval(function(){
+			time++;
+			$("Minutes").innerHTML=ShowNum(Math.floor(time/60));
+			$("Seconds").innerHTML=ShowNum(Math.floor(time%60));
+		},500)
+	}
+	// 游戏时间显示格式
+	function ShowNum(num){
+		if(num<10){
+			return "0"+num;
+		}else{
+			return num;
+		}
+	}
+</script>
